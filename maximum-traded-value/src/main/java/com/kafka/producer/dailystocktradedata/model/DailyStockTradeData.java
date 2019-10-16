@@ -1,4 +1,4 @@
-package com.kafka.streams.maximumtradedvalue.model;
+package com.kafka.producer.dailystocktradedata.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

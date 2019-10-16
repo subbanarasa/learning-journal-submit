@@ -1,12 +1,10 @@
 package com.kafka.streams.maximumtradedvalue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kafka.streams.maximumtradedvalue.model.DailyStockTradeData;
+import com.kafka.producer.dailystocktradedata.model.DailyStockTradeData;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.ForeachAction;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Serialized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +16,6 @@ import org.springframework.cloud.stream.binder.kafka.streams.annotations.KafkaSt
 import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.messaging.handler.annotation.SendTo;
-
-import java.util.Arrays;
-import java.util.Date;
 
 @SpringBootApplication
 public class MaximumTradedValueApplication {
@@ -39,15 +34,20 @@ public class MaximumTradedValueApplication {
 
         @StreamListener(Sink.INPUT)
         @SendTo(OUTPUT_TOPIC)
-        public KStream<String, DailyStockTradeData> process(KStream<String, String> input) {
+        public KStream<String, DailyStockTradeData> process(KStream<String, DailyStockTradeData> input) {
             ObjectMapper mapper = new ObjectMapper();
             Serde<DailyStockTradeData> stockDataSerde = new JsonSerde<>( DailyStockTradeData.class, mapper );
             input.foreach((s, dailyStockTradeData) -> logger.info("Input record::"+dailyStockTradeData));
-             return input.flatMapValues(value -> Arrays.asList(mapper.convertValue(value,DailyStockTradeData.class)))
-                     .groupBy((key, value) -> value.getTimestamp())
+            KStream<String, DailyStockTradeData> output = input
+                     .groupBy((key, dailyStockTradeData) -> dailyStockTradeData.getTimestamp(),Serialized.with(null, stockDataSerde))
                      .count()
-                    .toStream()
-                    .map((key, value) -> new KeyValue<>(null,value[0]));
+                     .toStream()
+                    .map((key, dailyStockTradeData) -> new KeyValue<>(null,new DailyStockTradeData()));
+
+            output.foreach((s, dailyStockTradeData) -> logger.info("Output record::"+dailyStockTradeData));
+
+            return output;
+
         }
     }
 

@@ -12,7 +12,7 @@
     <artifactId>maximum-traded-value</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>maximum-traded-value</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Maximum trade value kafka stream application for Spring Boot</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -62,8 +62,12 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+                </configuration>
             </plugin>
         </plugins>
+        <finalName>maximum-traded-value-0.0.1</finalName>
     </build>
 
 </project>
